@@ -1,7 +1,7 @@
 {
-  "name": "living-repo",
+  "name": "slumber",
   "version": "0.1.0",
-  "description": "Point an autonomous agent swarm at any GitHub repo. It solves every issue, proposes new features, and gets smarter from your feedback.",
+  "description": "Point an autonomous agent swarm at any GitHub repo. It solves every issue, proposes new features, and auto-merges the fixes. The repo never sleeps.",
   "main": "dist/index.js",
   "bin": {
     "living-repo": "dist/index.js"

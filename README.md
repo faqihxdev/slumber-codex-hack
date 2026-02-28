@@ -1,6 +1,6 @@
-# 🧬 Slumber
+# Slumber
 
-> Point an autonomous agent swarm at any GitHub repo. It solves every issue and proposes new features. The repo never sleeps.
+> Point an autonomous agent swarm at any GitHub repo. It solves every issue, proposes new features, and auto-merges the fixes. The repo never sleeps.
 
 **Built at the OpenAI Codex Hackathon Singapore — 28 Feb 2026**
 
@@ -8,27 +8,27 @@
 
 ## What It Does
 
-The Living Repo turns any GitHub repository into an autonomous development loop:
+Slumber turns any GitHub repository into an autonomous development loop:
 
 ```
-  ┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐
-  │ OBSERVE  │────▶│  PLAN   │────▶│ EXECUTE │────▶│ SUBMIT  │
-  │ (triage) │     │(priorit)│     │ (swarm) │     │  (PRs)  │
-  └─────────┘     └─────────┘     └─────────┘     └────┬────┘
-       ▲                                                │
-       │           ┌─────────┐                          │
-       └───────────│  LEARN  │◀─────────────────────────┘
-                   │(feedback)│
-                   └─────────┘
+  ┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐
+  │ OBSERVE  │────▶│  PLAN   │────▶│ SUGGEST │────▶│ EXECUTE │────▶│ MERGE   │
+  │ (triage) │     │(priorit)│     │(propose)│     │ (swarm) │     │(auto-PR)│
+  └─────────┘     └─────────┘     └─────────┘     └─────────┘     └─────────┘
 ```
 
-### Three Modes
+### Pipeline
 
-| Mode | Trigger | Action |
-|------|---------|--------|
-| **Issue Crusher** | Open issues exist | Triages, prioritizes, resolves issues via parallel agent swarm |
-| **Proactive Builder** | Backlog is clear | Proposes new features, builds approved ones |
-| **Steerable Autopilot** | Human edits `DIRECTIVES.md` | Adjusts priorities, respects boundaries |
+| Step | What Happens |
+|------|-------------|
+| **Triage** | Classifies every open issue by type, severity, and complexity using OpenAI structured output |
+| **Suggest** | Proposes one new feature and files it as a GitHub issue |
+| **Resolve** | Launches parallel Codex agents in isolated git worktrees to fix issues |
+| **PR + Merge** | Creates a PR for each fix, then auto-squash-merges it |
+
+### Human Steering
+
+Drop a `DIRECTIVES.md` in the target repo to control priorities, set off-limits areas, and enforce coding conventions. The agent re-reads it every loop.
 
 ---
 
@@ -37,7 +37,7 @@ The Living Repo turns any GitHub repository into an autonomous development loop:
 ```bash
 # Clone and install
 git clone <this-repo>
-cd living-repo
+cd slumber
 npm install
 
 # Configure
@@ -48,33 +48,34 @@ cp .env.example .env
 npm run build
 
 # Point at any GitHub repo — that's it
-living-repo https://github.com/owner/repo
+node dist/index.js https://github.com/owner/repo
 ```
 
-### CLI
+### Run Script
 
 ```bash
-# Simplest usage — auto-clones the repo, launches Ink TUI, 3 agents
-living-repo https://github.com/owner/repo
-
-# Custom concurrency
-living-repo https://github.com/owner/repo -c 5
-
-# Use an existing local clone
-living-repo https://github.com/owner/repo -p /path/to/local/clone
-
-# Plain text mode (no TUI)
-living-repo https://github.com/owner/repo --no-tui
-
-# Debug mode — writes all events to .living-repo-debug.jsonl
-living-repo https://github.com/owner/repo --debug
-
-# Legacy subcommands still work
-living-repo triage --repo https://github.com/owner/repo
-living-repo status --repo https://github.com/owner/repo
+# Interactive — prompts for repo URL and concurrency
+bash run.sh
 ```
 
-### Options
+### CLI Options
+
+```bash
+# Simplest usage — auto-clones the repo, launches TUI, 3 agents
+node dist/index.js https://github.com/owner/repo
+
+# Custom concurrency
+node dist/index.js https://github.com/owner/repo -c 5
+
+# Use an existing local clone
+node dist/index.js https://github.com/owner/repo -p /path/to/local/clone
+
+# Plain text mode (no TUI)
+node dist/index.js https://github.com/owner/repo --no-tui
+
+# Debug mode — writes all events to .living-repo-debug.jsonl
+node dist/index.js https://github.com/owner/repo --debug
+```
 
 | Flag | Description | Default |
 |------|-------------|---------|
@@ -85,47 +86,49 @@ living-repo status --repo https://github.com/owner/repo
 
 ---
 
-## Cyberpunk TUI
+## Terminal UI
 
 The default interface is a live terminal dashboard built with **Ink** (React for CLI):
 
 ```
-  ╔══════════════════════════════════════════════════════════════╗
-  ║  ⟁  THE LIVING REPO  autonomous agent swarm                ║
-  ╚══════════════════════════════════════════════════════════════╝
-    target: owner/repo
-  ────────────────────────────────────────────────────────────────
-
-  ▐ TRIAGE classifying issues
-   ████████████░░░░░░░░░░░░░░░░░░ 8/20 40%
-
-  ▐ QUEUE
-  ⏳ 16 pending  ⚡ 2 active  ✦ 2 done  ✘ 0 fail
-   ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 2/20
-  ────────────────────────────────────────────────────────────────
-
-  ▐ AGENTS 2 active
-     ⠴ ◉ 🐛 #7 Auth middleware crashes on empty Bearer  [critical] 57s
-            └─ Editing: auth.ts
-     ⠴ ◉ 🐛 #6 GET /tasks/:id returns 500...            [high] 57s
-            └─ $ npm test
-  ────────────────────────────────────────────────────────────────
-
-  ▐ PULL REQUESTS 2 created
-   ✦ PR #21 Fix: Auth middleware crashes on empty Bearer
-   ✦ PR #23 Fix: GET /tasks/:id returns 500...
-  ────────────────────────────────────────────────────────────────
-
-  ⏱ 2m43s  triaged: 20  resolved: 2  PRs: 2
-
-    press q to quit
+╔══════════════════════════════════════════════════════════════╗
+║  ⟁  SLUMBER  autonomous agent swarm                         ║
+║  owner/repo  │  ⚡ RESOLVING  │  uptime 2m43s               ║
+╚══════════════════════════════════════════════════════════════╝
+╭──────────────────────────────╮╭──────────────────────────────╮
+│ QUEUE                        ││ METRICS                      │
+│ ⏳ 14 pending  ⚡ 3 active   ││ 📊 20 triaged               │
+│ ✦ 3 done  ✘ 0 fail          ││ ✦  3 resolved               │
+│ ████░░░░░░░░░░ 3/20          ││ 📬 3 PRs created            │
+╰──────────────────────────────╯│ 🔀 3 merged                 │
+                                ╰──────────────────────────────╯
+╭──────────────────────────────────────────────────────────────╮
+│ AGENTS 3 active                                              │
+│ ┌──────────────────────────────────────────────────────────┐ │
+│ │ ⠴ ◉ 🐛 #7 Auth middleware crashes on empty Bearer  57s  │ │
+│ │  └─ Editing: auth.ts                                     │ │
+│ └──────────────────────────────────────────────────────────┘ │
+╰──────────────────────────────────────────────────────────────╯
+╭──────────────────────────────╮╭──────────────────────────────╮
+│ PULL REQUESTS 3              ││ ACTIVITY LOG                 │
+│ 🔀 #37 Fix: Auth crashes     ││ ⚡ Agent started for #7     │
+│ 🔀 #38 Fix: 500 on tasks    ││ 📬 PR #37 created           │
+│ ✦ #39 Fix: Input validation  ││ 🔀 PR #37 auto-merged      │
+╰──────────────────────────────╯╰──────────────────────────────╯
+╭──────────────────────────────────────────────────────────────╮
+│ NEW FEATURE SUGGESTED                                        │
+│ 💡 #21 Add rate limiting middleware                          │
+│  └─ priority 8/10 • complexity M • posted as GitHub issue    │
+╰──────────────────────────────────────────────────────────────╯
+                          press q to quit │ ctrl+c to exit
 ```
 
 Features:
 - Real-time progress bars, spinners, and status indicators
 - Live agent cards showing what each Codex agent is doing
-- Neon cyberpunk color palette (cyan/magenta/green)
-- PR feed as they're created
+- Clean pastel color palette (lavender, sky blue, mint)
+- PR feed with merge status
+- Feature suggestion panel
 - Disable with `--no-tui` for plain text output
 
 ---
@@ -134,11 +137,11 @@ Features:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                      THE LIVING REPO                         │
+│                         SLUMBER                               │
 │                                                              │
 │  ┌──────────────────────────────────────────────────────┐    │
 │  │                 EVENT BUS (bus)                        │    │
-│  │  init → triage → queue → agent → pr → loop            │    │
+│  │  init → triage → propose → queue → agent → pr → done  │    │
 │  └──────────┬──────────────────────┬────────────────────┘    │
 │             │                      │                          │
 │     ┌───────▼───────┐     ┌───────▼───────┐                  │
@@ -147,22 +150,23 @@ Features:
 │     └───────┬───────┘     └───────────────┘                  │
 │             │                                                 │
 │  ┌──────────▼──────────────────────────────────────────┐     │
-│  │                   ORCHESTRATOR                       │     │
+│  │                  PIPELINE                            │     │
 │  │  ┌────────────┐  ┌────────────┐  ┌───────────────┐ │     │
-│  │  │  Ingester   │  │  Triage    │  │  Queue Mgr    │ │     │
-│  │  │  (analyze)  │  │  (classify)│  │  (prioritize) │ │     │
+│  │  │  Ingester   │  │  Triage    │  │  Proposer     │ │     │
+│  │  │  (analyze)  │  │  (classify)│  │  (suggest)    │ │     │
 │  │  └────────────┘  └────────────┘  └───────────────┘ │     │
 │  │  ┌────────────┐  ┌────────────┐  ┌───────────────┐ │     │
-│  │  │  Swarm      │  │  Feedback  │  │  Proposer     │ │     │
-│  │  │  (parallel) │  │  (learn)   │  │  (features)   │ │     │
+│  │  │  Queue      │  │  Swarm     │  │  PR + Merge   │ │     │
+│  │  │ (prioritize)│  │  (parallel)│  │  (auto-merge) │ │     │
 │  │  └────────────┘  └────────────┘  └───────────────┘ │     │
 │  └─────────────────────────┬───────────────────────────┘     │
 │              ┌──────────────┼──────────────┐                  │
 │              ▼              ▼              ▼                   │
 │       ┌────────────┐ ┌────────────┐ ┌────────────┐           │
 │       │ Worktree 1 │ │ Worktree 2 │ │ Worktree 3 │           │
-│       │ Issue #42  │ │ Issue #87  │ │ Feature X  │           │
-│       │ → Fix → PR │ │ → Fix → PR │ │ → Build→PR │           │
+│       │ Issue #42  │ │ Issue #87  │ │ Issue #15  │           │
+│       │ → Fix → PR │ │ → Fix → PR │ │ → Fix → PR │           │
+│       │ → Merge ✓  │ │ → Merge ✓  │ │ → Merge ✓  │           │
 │       └────────────┘ └────────────┘ └────────────┘           │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -171,38 +175,18 @@ Features:
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| CLI | `src/index.ts` | Entry point — `living-repo <url>`, flags, subcommands |
+| CLI | `src/index.ts` | Entry point with flags and subcommands |
 | Event Bus | `src/events.ts` | Typed event emitter decoupling engine from UI |
-| Engine | `src/engine.ts` | Event-driven pipeline: init → triage → resolve → PR |
-| Ink TUI | `src/ui/App.tsx` | Cyberpunk React terminal UI |
-| Orchestrator | `src/orchestrator.ts` | Legacy loop mode (still works) |
-| Ingester | `src/ingester.ts` | Codebase analysis, CODEBASE_CONTEXT.md, skill gen |
+| Engine | `src/engine.ts` | Event-driven pipeline: init → triage → propose → resolve → merge |
+| Ink TUI | `src/ui/App.tsx` | React terminal dashboard |
+| Ingester | `src/ingester.ts` | Codebase analysis via OpenAI API |
 | Triage | `src/triage.ts` | Issue classification via OpenAI structured output |
 | Queue | `src/queue.ts` | Priority scoring with directive boosts |
 | Swarm | `src/swarm.ts` | Parallel Codex agent launcher with worktree isolation |
-| PR Submitter | `src/pr.ts` | Auto-creates PRs with structured descriptions |
+| PR + Merge | `src/pr.ts` | Auto-creates PRs and squash-merges them |
+| Proposer | `src/proposer.ts` | Generates feature proposals, files as GitHub issues |
 | Feedback | `src/feedback.ts` | Learns from PR review comments |
-| Proposer | `src/proposer.ts` | Generates feature proposals |
 | Directives | `src/directives.ts` | Parses DIRECTIVES.md for human steering |
-
----
-
-## Debuggability
-
-Three modes for observing what's happening:
-
-| Mode | How | When to use |
-|------|-----|-------------|
-| **Debug log** | `--debug` flag | Writes every event to `.living-repo-debug.jsonl` |
-| **Plain text** | `--no-tui` flag | All events as log lines, readable by scripts/agents |
-| **TUI** | Default | Human-facing live dashboard |
-
-The `--debug` flag writes a newline-delimited JSON log of every event:
-```json
-{"type":"triage:issue","timestamp":1772260035326,"data":{"issueId":20,"classification":"chore","severity":"medium"}}
-{"type":"agent:start","timestamp":1772260736842,"data":{"issueId":7,"title":"Auth middleware crashes"}}
-{"type":"pr:created","timestamp":1772261488410,"data":{"issueId":7,"prNumber":21,"prUrl":"https://..."}}
-```
 
 ---
 
@@ -228,8 +212,6 @@ Drop a `DIRECTIVES.md` in the target repo root to control the agent:
 - Maximum 200 lines changed per PR
 ```
 
-The agent re-reads this file every loop iteration — edits take effect immediately.
-
 ---
 
 ## Tech Stack
@@ -240,7 +222,7 @@ The agent re-reads this file every loop iteration — edits take effect immediat
 | Terminal UI | Ink (React for CLI) + @inkjs/ui |
 | Agent Control | `@openai/codex-sdk` — thread management, structured output, streaming |
 | Codex Model | `gpt-5.2-codex` — purpose-built for agentic coding tasks |
-| Text Analysis | OpenAI API (`gpt-5.2`) — feedback extraction, proposals |
+| Text Analysis | OpenAI API (`gpt-5.2`) — triage, proposals, codebase analysis |
 | GitHub | `@octokit/rest` (REST API) |
 | Validation | Zod |
 | CLI | Commander |
