@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.tsbuildinfo
+.DS_Store
+
+.cursor/
+docs/
+run.sh
+.living-repo-debug.jsonl

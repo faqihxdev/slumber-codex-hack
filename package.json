@@ -1,0 +1,43 @@
+{
+  "name": "living-repo",
+  "version": "0.1.0",
+  "description": "Point an autonomous agent swarm at any GitHub repo. It solves every issue, proposes new features, and gets smarter from your feedback.",
+  "main": "dist/index.js",
+  "bin": {
+    "living-repo": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc && cp -r src/schemas dist/",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "codex",
+    "autonomous",
+    "github",
+    "agent",
+    "swarm"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@inkjs/ui": "^2.0.0",
+    "@octokit/rest": "^22.0.1",
+    "@openai/codex-sdk": "^0.106.0",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "dotenv": "^17.3.1",
+    "ink": "^6.8.0",
+    "openai": "^6.25.0",
+    "ora": "^9.3.0",
+    "react": "^19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
