@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "user_benefit": { "type": "string" },
+          "complexity": { "type": "string", "enum": ["S", "M", "L"] },
+          "implementation_sketch": { "type": "string" },
+          "priority_score": { "type": "number", "minimum": 1, "maximum": 10 }
+        },
+        "required": ["title", "description", "user_benefit", "complexity", "implementation_sketch", "priority_score"]
+      }
+    }
+  },
+  "required": ["proposals"],
+  "additionalProperties": false
+}

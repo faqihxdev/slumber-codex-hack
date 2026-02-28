@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "properties": {
+    "issue_id": { "type": "number" },
+    "title": { "type": "string" },
+    "classification": {
+      "type": "string",
+      "enum": ["bug", "feature", "refactor", "docs", "test", "chore"]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"]
+    },
+    "complexity": {
+      "type": "string",
+      "enum": ["S", "M", "L"]
+    },
+    "relevant_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Issue IDs that must be resolved first"
+    },
+    "approach": {
+      "type": "string",
+      "description": "2-3 sentence plan for resolving this issue"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"]
+    }
+  },
+  "required": ["issue_id", "title", "classification", "severity", "complexity", "relevant_files", "dependencies", "approach", "confidence"],
+  "additionalProperties": false
+}
